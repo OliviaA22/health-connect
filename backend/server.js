@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require('cors');
 
 const userRoutes = require("./routes/userRoutes.js");
 const authRoutes = require("./routes/authRoutes.js");
@@ -14,10 +15,18 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
+// Configure CORS to allow requests from your React app's origin
+// app.use(cors({
+//   origin: 'http://localhost:3000',
+//   credentials: true
+// }));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(express.static('client'));
 
 app.use("/api/users", userRoutes);
 
