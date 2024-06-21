@@ -9,7 +9,7 @@ services:
       - "3307:3306"
     volumes:
       - project-database:/var/lib/mysql
-      - ../mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -18,13 +18,14 @@ services:
 
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     environment:
       DB_HOST: db
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      SECRETE: ${SECRETE}
     depends_on:
       db:
         condition: service_healthy
@@ -32,6 +33,14 @@ services:
       - "7000:7000"
     volumes:
       - .:/usr/src/app
+      
+  client:
+    build:
+      context: ./frontend
+    ports:
+      - 80:80
+    depends_on:
+      - backend
 
 volumes:
   project-database:

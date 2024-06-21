@@ -1,7 +1,6 @@
+const axios = require('axios');
 const db = require("../models");
 bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { getCoordinates } = require("../utils");
 
 const User = db.User;
 const Specialization = db.Specialization;
@@ -32,6 +31,37 @@ class UserService {
     }
     const hashedPassword = await bcrypt.hash(data.password, 10);
     data.password = hashedPassword;
+
+
+
+  // Extract address details from the request
+  const { postcode, street, city, state, country } = data.address;
+
+  // Create the address string
+  const addressString = `${postcode}, ${street}, ${city}, ${state}, ${country}`;
+
+  // Fetch geolocation data
+  const params = {
+    access_key: process.env.API_ACCESS_KEY,
+    query: addressString,
+  };
+
+  const geocodingResponse = await axios.get(
+    "http://api.positionstack.com/v1/forward",
+    { params }
+  );
+
+  const lat = geocodingResponse.data.data[0].latitude;
+  const lng = geocodingResponse.data.data[0].longitude;
+
+  const coordinates = {
+    type: "Point",
+    coordinates: [lng, lat], // Note: longitude comes before latitude
+  };
+
+  // Add the coordinates to the request data
+  data.location = coordinates;
+
 
     // Creating the user within a transaction to ensure data is saved correctly
     // into all tables at once
@@ -82,6 +112,8 @@ class UserService {
     }
     return doctors;
   }
+
+
 
 
   async getDoctorById(id) {
