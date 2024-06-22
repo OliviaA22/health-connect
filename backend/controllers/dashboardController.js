@@ -13,6 +13,16 @@ class DashboardController {
       }
 
 
+      async getLanguages(req, res, next) {
+        try {
+          const languages = await DashbordService.getLanguages();
+          res.status(201).json(languages);
+        } catch (error) {
+          next(error);
+        }
+      }
+
+
     //   async search(req, res, next) {
     //     try {
     //       const { address, language, specialization, radius } = req.query;

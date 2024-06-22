@@ -148,6 +148,12 @@ class DashboardService{
     //     return doctors;
     //   }
       
+    
+  async getLanguages() {
+    const languages = await Language.findAll();
+    return languages;
+  }
+
 
       
 }
