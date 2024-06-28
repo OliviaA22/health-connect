@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      appointment_reason: {
+        type: DataTypes.JSON,
+        allowNull: false,
+      },
       book_translation: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

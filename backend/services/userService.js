@@ -102,6 +102,33 @@ class UserService {
     return doctors;
   }
 
+
+  async getDoctors() {
+    const doctors = await User.findAll({
+      where: {
+        role: "doctor",
+      },
+      include: [
+        {
+          model: Specialization,
+          attributes: ["area_of_specialization"], // Only include area_of_specialization
+        },
+        {
+          model: Language,
+          attributes: ["language_name"], // Only include language_name
+          through: { attributes: [] } // Exclude attributes from the junction table
+        },
+      ],
+    });
+  
+    if (!doctors) {
+      throw new Error("No doctor found");
+    }
+  
+    return doctors;
+  }
+
+
   async getDoctorById(id) {
     const doctor = await User.findByPk(id, {
       include: [
@@ -112,12 +139,11 @@ class UserService {
     if (!doctor) {
       throw new Error("Doctor not found");
     }
-    //  return doctor;
+  
     const processedDoctor = doctor.toJSON();
     processedDoctor.languages = processedDoctor.languages.map(
       (language) => language.language_name
     );
-
     return processedDoctor;
   }
 
@@ -130,7 +156,6 @@ class UserService {
     processedUser.languages = processedUser.languages.map(
       (language) => language.language_name
     );
-
     return processedUser;
   }
 
