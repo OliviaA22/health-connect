@@ -7,7 +7,6 @@ const Specialization = db.Specialization;
 const Language = db.Language;
 
 class UserService {
-
   async createUser(data) {
     data.email = data.email.toLowerCase();
     let user = await User.findOne({ where: { email: data.email } });
@@ -45,6 +44,13 @@ class UserService {
     // Add the coordinates to the request data
     data.location = coordinates;
 
+    const specialization = await Specialization.findByPk(
+      data.specialization_id
+    );
+    if (!specialization) {
+      throw new Error("Invalid specialization_id");
+    }
+
     // Creating the user within a transaction to ensure data is saved correctly
     // into all tables at once
     return await db.sequelize.transaction(async (t) => {
@@ -54,40 +60,23 @@ class UserService {
         // Assuming data.language is an array of language IDs
         await user.setLanguages(data.languages, { transaction: t });
       }
-
-      data.specialization_id = await Specialization.findOne({
-        where: {
-          id: data.specialization_id,
-        },
-      });
       return user;
     });
   }
 
   async getUsers() {
     const user = await User.findAll({
-      include: [{ model: Language, attributes: ["language_name"] }],
+      include: [
+        {
+          model: Language,
+          attributes: ["language_name"], // Only include language_name
+          through: { attributes: [] }, // Exclude attributes from the junction table
+        },
+      ],
     });
 
     return user;
   }
-
-  async getDoctors() {
-    const doctors = await User.findAll({
-      where: {
-        role: "doctor",
-      },
-      include: [
-        { model: Specialization, attributes: ["area_of_specialization"] },
-        { model: Language, attributes: ["language_name"] },
-      ],
-    });
-    if (!doctors) {
-      throw new Error("No doctor found");
-    }
-    return doctors;
-  }
-
 
   async getDoctors() {
     const doctors = await User.findAll({
@@ -102,47 +91,46 @@ class UserService {
         {
           model: Language,
           attributes: ["language_name"], // Only include language_name
-          through: { attributes: [] } // Exclude attributes from the junction table
+          through: { attributes: [] }, // Exclude attributes from the junction table
         },
       ],
     });
-  
+
     if (!doctors) {
       throw new Error("No doctor found");
     }
-  
+
     return doctors;
   }
-
 
   async getDoctorById(id) {
     const doctor = await User.findByPk(id, {
       include: [
         { model: Specialization, attributes: ["area_of_specialization"] },
-        { model: Language, attributes: ["language_name"] },
+        {
+          model: Language,
+          through: { attributes: [] }, // This excludes the junction table attributes
+        },
       ],
     });
     if (!doctor) {
       throw new Error("Doctor not found");
     }
-  
-    const processedDoctor = doctor.toJSON();
-    processedDoctor.languages = processedDoctor.languages.map(
-      (language) => language.language_name
-    );
-    return processedDoctor;
+
+    return doctor;
   }
 
   async getUserById(userId) {
     const user = await User.findByPk(userId, {
-      include: [Language],
+      include: [
+        {
+          model: Language,
+          through: { attributes: [] }, // This excludes the junction table attributes
+        },
+      ],
     });
     // return user;
-    const processedUser = user.toJSON();
-    processedUser.languages = processedUser.languages.map(
-      (language) => language.language_name
-    );
-    return processedUser;
+    return user;
   }
 
   // used in verifying logged-in user

@@ -86,6 +86,12 @@ class AuthService {
       where: {
         email: data.email,
       },
+      include: [
+        {
+          model: Language,
+          through: { attributes: [] } // This excludes the junction table attributes
+        }
+      ]
     });
     if (!user) throw new Error("user does not exist");
 
@@ -98,7 +104,6 @@ class AuthService {
       {
         userId: user.dataValues.id,
         role: user.dataValues.role,
-        language: user.dataValues.language_name,
         address: user.address,
       },
       process.env.SECRETE,
@@ -110,34 +115,8 @@ class AuthService {
     };
   }
 
-  async doctorLogin(data) {
-    data.email = data.email.toLowerCase();
-    const doctor = await Doctor.findOne({
-      where: {
-        email: data.email,
-      },
-    });
-    if (!doctor) throw new Error("user does not exist");
 
-    const validPassword = await bcrypt.compare(data.password, doctor.password);
-    if (!validPassword) {
-      throw new Error("Invalid password");
-    }
 
-    const token = jwt.sign(
-      {
-        doctorId: doctor.dataValues.doctor_id,
-        role: doctor.dataValues.role,
-        address: doctor.dataValues.address,
-      },
-      process.env.SECRETE,
-      { expiresIn: "24h" }
-    );
-    return {
-      doctor,
-      token,
-    };
-  }
 }
 
 module.exports = new AuthService();

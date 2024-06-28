@@ -7,7 +7,6 @@ authRouter.post('/register', authController.register);
 authRouter.post('/login', authController.login);
 
 
-authRouter.post('/doctor-login', authController.doctorLogin);
 
 
 
