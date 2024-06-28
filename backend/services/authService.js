@@ -98,6 +98,7 @@ class AuthService {
       {
         userId: user.dataValues.id,
         role: user.dataValues.role,
+        language: user.dataValues.language_name,
         address: user.address,
       },
       process.env.SECRETE,

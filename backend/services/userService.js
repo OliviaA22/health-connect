@@ -7,20 +7,6 @@ const Specialization = db.Specialization;
 const Language = db.Language;
 
 class UserService {
-  // async createUser(data) {
-  //   let user = await User.findOne({ where: { email: data.email } });
-  //   if (user) {
-  //     throw new Error("email already exists");
-  //   }
-  //   data.email = data.email.toLowerCase();
-  //   const hashedPassword = await bcrypt.hash(data.password, 10);
-  //   user = await User.create({
-  //     ...data,
-  //     password: hashedPassword,
-  //   });
-
-  //   return user;
-  // }
 
   async createUser(data) {
     data.email = data.email.toLowerCase();
