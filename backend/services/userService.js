@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require("axios");
 const db = require("../models");
 bcrypt = require("bcryptjs");
 
@@ -22,7 +22,6 @@ class UserService {
   //   return user;
   // }
 
-
   async createUser(data) {
     data.email = data.email.toLowerCase();
     let user = await User.findOne({ where: { email: data.email } });
@@ -32,66 +31,58 @@ class UserService {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     data.password = hashedPassword;
 
+    // Extract address details from the request
+    const { postcode, street, city, state, country } = data.address;
 
+    // Create the address string
+    const addressString = `${postcode}, ${street}, ${city}, ${state}, ${country}`;
 
-  // Extract address details from the request
-  const { postcode, street, city, state, country } = data.address;
+    // Fetch geolocation data
+    const params = {
+      access_key: process.env.API_ACCESS_KEY,
+      query: addressString,
+    };
 
-  // Create the address string
-  const addressString = `${postcode}, ${street}, ${city}, ${state}, ${country}`;
+    const geocodingResponse = await axios.get(
+      "http://api.positionstack.com/v1/forward",
+      { params }
+    );
 
-  // Fetch geolocation data
-  const params = {
-    access_key: process.env.API_ACCESS_KEY,
-    query: addressString,
-  };
+    const lat = geocodingResponse.data.data[0].latitude;
+    const lng = geocodingResponse.data.data[0].longitude;
 
-  const geocodingResponse = await axios.get(
-    "http://api.positionstack.com/v1/forward",
-    { params }
-  );
+    const coordinates = {
+      type: "Point",
+      coordinates: [lng, lat], // Note: longitude comes before latitude
+    };
 
-  const lat = geocodingResponse.data.data[0].latitude;
-  const lng = geocodingResponse.data.data[0].longitude;
-
-  const coordinates = {
-    type: "Point",
-    coordinates: [lng, lat], // Note: longitude comes before latitude
-  };
-
-  // Add the coordinates to the request data
-  data.location = coordinates;
-
+    // Add the coordinates to the request data
+    data.location = coordinates;
 
     // Creating the user within a transaction to ensure data is saved correctly
     // into all tables at once
     return await db.sequelize.transaction(async (t) => {
       user = await User.create(data, { transaction: t });
 
-      if (data.language && data.language.length > 0) {
-        const languages = await Language.findAll({
-          where: {
-            id: data.language,
-          },
-        });
-        await user.addLanguages(languages, { transaction: t });
+      if (data.languages && data.languages.length > 0) {
+        // Assuming data.language is an array of language IDs
+        await user.setLanguages(data.languages, { transaction: t });
       }
+
       data.specialization_id = await Specialization.findOne({
-          where: {
-            id: data.specialization_id,
-          },
-        });
+        where: {
+          id: data.specialization_id,
+        },
+      });
       return user;
     });
   }
 
   async getUsers() {
     const user = await User.findAll({
-      include: [
-        { model: Language,
-          attributes: ['language_name'], }
-      ]});
-    
+      include: [{ model: Language, attributes: ["language_name"] }],
+    });
+
     return user;
   }
 
@@ -101,11 +92,9 @@ class UserService {
         role: "doctor",
       },
       include: [
-        { model: Specialization,
-          attributes: ['area_of_specialization'], },
-        { model: Language,
-          attributes: ['language_name'], }
-      ]
+        { model: Specialization, attributes: ["area_of_specialization"] },
+        { model: Language, attributes: ["language_name"] },
+      ],
     });
     if (!doctors) {
       throw new Error("No doctor found");
@@ -113,37 +102,35 @@ class UserService {
     return doctors;
   }
 
-
-
-
   async getDoctorById(id) {
     const doctor = await User.findByPk(id, {
       include: [
-        { model: Specialization,
-          attributes: ['area_of_specialization'], },
-        { model: Language,
-          attributes: ['language_name'], }
-      ]
+        { model: Specialization, attributes: ["area_of_specialization"] },
+        { model: Language, attributes: ["language_name"] },
+      ],
     });
     if (!doctor) {
       throw new Error("Doctor not found");
     }
-  //  return doctor;
-  const processedDoctor = doctor.toJSON();
-  processedDoctor.languages = processedDoctor.languages.map(language => language.language_name);
+    //  return doctor;
+    const processedDoctor = doctor.toJSON();
+    processedDoctor.languages = processedDoctor.languages.map(
+      (language) => language.language_name
+    );
 
-  return processedDoctor;
+    return processedDoctor;
   }
-
 
   async getUserById(userId) {
     const user = await User.findByPk(userId, {
       include: [Language],
     });
-   // return user;
+    // return user;
     const processedUser = user.toJSON();
-    processedUser.languages = processedUser.languages.map(language => language.language_name);
-  
+    processedUser.languages = processedUser.languages.map(
+      (language) => language.language_name
+    );
+
     return processedUser;
   }
 
@@ -169,7 +156,7 @@ class UserService {
       throw new Error("User not found");
     }
     await user.destroy();
-    return ("User deleted successfully") ;
+    return "User deleted successfully";
   }
 }
 

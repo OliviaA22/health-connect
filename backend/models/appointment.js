@@ -26,11 +26,6 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
-      insurance_type: {
-        type: DataTypes.ENUM,
-        values: ["public", "private"],
-        allowNull: false,
-      },
       book_translation: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
