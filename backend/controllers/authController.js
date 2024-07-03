@@ -39,13 +39,14 @@ class AuthController {
   async checkAuth(req, res, next) {
     try {
       const token = req.cookies.token;
-      const user = await authService.checkAuth(token);
+      const user = await AuthService.checkAuth(token);
       res.json({ user });
     } catch (error) {
       res.status(401).json({ message: "Unauthorized" });
     }
   }
 
+  
   async logout(req, res, next) {
     try {
       res
