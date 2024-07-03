@@ -18,7 +18,7 @@ class AuthController {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: true,
           sameSite: "none",
           expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
         })
@@ -46,7 +46,7 @@ class AuthController {
     }
   }
 
-  
+
   async logout(req, res, next) {
     try {
       res
