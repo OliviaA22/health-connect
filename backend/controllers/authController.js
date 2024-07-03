@@ -30,7 +30,6 @@ class AuthController {
           email: user.email,
           address: user.address,
           languages: user.languages,
-          token: token,
         });
     } catch (error) {
       next(error);
