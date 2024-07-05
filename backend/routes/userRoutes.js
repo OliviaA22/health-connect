@@ -11,7 +11,7 @@ userRouter.get('/', isLoggedIn, userController.getDoctors);
 
 userRouter.post('/admin-create', isLoggedIn, roleCheck('admin'), userController.createUser);
 
-userRouter.get('/patients', isLoggedIn, userController.getPatients);
+userRouter.get('/patients', isLoggedIn, roleCheck('admin'), userController.getPatients);
 
 userRouter.get('/all-users', isLoggedIn, roleCheck('admin'), userController.getUsers);
 
