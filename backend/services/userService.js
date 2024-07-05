@@ -78,6 +78,30 @@ class UserService {
     return user;
   }
 
+
+
+  async getPatients() {
+    const patients = await User.findAll({
+      where: {
+        role: "normal_user",
+      },
+      include: [
+        {
+          model: Language,
+          attributes: ["language_name"], // Only include language_name
+          through: { attributes: [] }, // Exclude attributes from the junction table
+        },
+      ],
+    });
+
+    if (!patients) {
+      throw new Error("No patients found");
+    }
+
+    return patients;
+  }
+
+
   async getDoctors() {
     const doctors = await User.findAll({
       where: {
