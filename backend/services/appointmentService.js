@@ -7,15 +7,6 @@ const Specialization = db.Specialization
 const User = db.User;
 
 class AppointmentService {
-  // async createAppointment(data) {
-  //   const availability = await Availability.findByPk(data.availability_id);
-  //   if (!availability) {
-  //     throw new Error("Availability not found");
-  //   }
-  //   const appointment = await Appointment.create(data);
-  //   const updatedAvailability = await availability.update({ active: false });
-  //   return appointment;
-  // }
 
   async createAppointment(data) {
     const currentTime = new Date();
@@ -43,6 +34,47 @@ class AppointmentService {
       return appointment;
     });
   }
+
+  async getAllAppointments() {
+    const appointments = await Appointment.findAll({
+      include: [
+        {
+          model: User,
+          as: "patient",
+          attributes: ["id", "first_name", "last_name", "address"],
+        },
+        {
+          model: User,
+          as: "doctor",
+          attributes: ["id", "first_name", "last_name", "address"],
+          include: [
+            {
+              model: Specialization,
+              as: "specialization",
+              attributes: ["area_of_specialization"],
+            }
+          ]
+        },
+        {
+          model: Availability,
+          as: "availability",
+          attributes: ["availability_date", "active"],
+        },
+      ],
+    });
+
+    return appointments.map((appointment) => ({
+      id: appointment.id,
+      patient: appointment.patient,
+      doctor: appointment.doctor,
+      appointmentDate: appointment.availability.availability_date,
+      appointmentReason: appointment.appointment_reason,
+      bookTranslation: appointment.book_translation,
+      completed: appointment.completed,
+
+    }));
+  }
+
 
   async getUserAppointments(userId) {
     const appointments = await Appointment.findAll({
@@ -88,44 +120,67 @@ class AppointmentService {
     return appointments;
   }
 
-  async getAllAppointments() {
+
+  async getUserDoctors(userId) {
     const appointments = await Appointment.findAll({
+      where: { user_id: userId },
+      attributes: [],
       include: [
         {
           model: User,
-          as: "patient",
-          attributes: ["id", "first_name", "last_name", "address"],
-        },
-        {
-          model: User,
-          as: "doctor",
-          attributes: ["first_name", "last_name", "address"],
+          as: 'doctor',
+          attributes: [
+            [db.sequelize.literal("CONCAT(title, ' ', doctor.first_name, ' ', doctor.last_name)"), "doctor_name"]
+          ],
           include: [
             {
               model: Specialization,
-              as: "specialization",
-              attributes: ["area_of_specialization"],
+              as: 'specialization',
+              attributes: ["area_of_specialization"]
             }
           ]
-        },
-        {
-          model: Availability,
-          as: "availability",
-          attributes: ["availability_date", "active"],
-        },
+        }
       ],
+      group: [
+        'doctor.id',
+        'doctor.title', 
+        'doctor.first_name', 
+        'doctor.last_name', 
+        'doctor.specialization.area_of_specialization'
+      ],
+      raw: true,
+      nest: true
     });
+  
+    return appointments;
+  }  
+  
 
-    return appointments.map((appointment) => ({
-      id: appointment.id,
-      patient: appointment.patient,
-      doctor: appointment.doctor,
-      appointmentDate: appointment.availability.availability_date,
-      appointmentReason: appointment.appointment_reason,
-      bookTranslation: appointment.book_translation,
-      // Add any other fields you need
-    }));
-  }
+
+  async getDoctorPatients(doctorId) {
+    const appointments = await Appointment.findAll({
+      where: { doctor_id: doctorId },
+      attributes: [],
+      include: [
+        {
+          model: User,
+          as: 'patient',
+          attributes: [[db.sequelize.literal("CONCAT(title, ' ', patient.first_name, ' ', patient.last_name)"), "patient_name"]
+          ]
+        }
+      ],
+      group: [
+        'patient.id',
+        'patient.title', 
+        'patient.first_name', 
+        'patient.last_name'
+      ],
+      raw: true,
+      nest: true
+    });
+  
+    return appointments;
+  } 
 
   async updateAppointment(appointmentId, updates) {
     const appointment = await Appointment.findByPk(appointmentId);
