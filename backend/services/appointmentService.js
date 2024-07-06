@@ -3,11 +3,10 @@ const db = require("../models");
 const Op = db.Op;
 const Appointment = db.Appointment;
 const Availability = db.Availability;
-const Specialization = db.Specialization
+const Specialization = db.Specialization;
 const User = db.User;
 
 class AppointmentService {
-
   async createAppointment(data) {
     const currentTime = new Date();
 
@@ -52,8 +51,8 @@ class AppointmentService {
               model: Specialization,
               as: "specialization",
               attributes: ["area_of_specialization"],
-            }
-          ]
+            },
+          ],
         },
         {
           model: Availability,
@@ -71,10 +70,8 @@ class AppointmentService {
       appointmentReason: appointment.appointment_reason,
       bookTranslation: appointment.book_translation,
       completed: appointment.completed,
-
     }));
   }
-
 
   async getUserAppointments(userId) {
     const appointments = await Appointment.findAll({
@@ -89,8 +86,8 @@ class AppointmentService {
               model: Specialization,
               as: "specialization",
               attributes: ["area_of_specialization"],
-            }
-          ]
+            },
+          ],
         },
         {
           model: Availability,
@@ -109,7 +106,8 @@ class AppointmentService {
         {
           model: User,
           as: "patient",
-          attributes: ["first_name", "last_name", "address"]},
+          attributes: ["first_name", "last_name", "address"],
+        },
         {
           model: Availability,
           as: "availability",
@@ -120,68 +118,144 @@ class AppointmentService {
     return appointments;
   }
 
+  // async getUserDoctors(userId) {
+  //   const appointments = await Appointment.findAll({
+  //     where: { user_id: userId },
+  //     attributes: [],
+  //     include: [
+  //       {
+  //         model: User,
+  //         as: "doctor",
+  //         attributes: [
+  //           [
+  //             db.sequelize.literal(
+  //               "CONCAT(title, ' ', doctor.first_name, ' ', doctor.last_name)"
+  //             ),
+  //             "doctor_name",
+  //           ],
+  //         ],
+  //         include: [
+  //           {
+  //             model: Specialization,
+  //             as: "specialization",
+  //             attributes: ["area_of_specialization"],
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //     group: [
+  //       "doctor.id",
+  //       "doctor.title",
+  //       "doctor.first_name",
+  //       "doctor.last_name",
+  //       "doctor.specialization.area_of_specialization",
+  //     ],
+  //     raw: true,
+  //     nest: true,
+  //   });
+
+  //   return appointments;
+  // }
+
+
 
   async getUserDoctors(userId) {
-    const appointments = await Appointment.findAll({
-      where: { user_id: userId },
-      attributes: [],
+    const doctors = await User.findAll({
+      attributes: [
+        [db.sequelize.literal("CONCAT(title, ' ', first_name, ' ', last_name)"), "doctor_name"],
+      ],
       include: [
         {
-          model: User,
-          as: 'doctor',
-          attributes: [
-            [db.sequelize.literal("CONCAT(title, ' ', doctor.first_name, ' ', doctor.last_name)"), "doctor_name"]
-          ],
-          include: [
-            {
-              model: Specialization,
-              as: 'specialization',
-              attributes: ["area_of_specialization"]
-            }
-          ]
-        }
+          model: Appointment,
+          where: { user_id: userId },
+          attributes: [],
+          required: true
+        },
+        {
+          model: Specialization,
+          as: "specialization",
+          attributes: ["area_of_specialization"],
+        },
       ],
-      group: [
-        'doctor.id',
-        'doctor.title', 
-        'doctor.first_name', 
-        'doctor.last_name', 
-        'doctor.specialization.area_of_specialization'
-      ],
+      group: ['User.id', 'specialization.area_of_specialization'],
       raw: true,
       nest: true
     });
   
-    return appointments;
-  }  
-  
+    return doctors;
+  }
 
+  
+  // async getDoctorPatients(doctorId) {
+  //   const appointments = await Appointment.findAll({
+  //     where: { doctor_id: doctorId },
+  //     attributes: ['appointment_reason'],
+  //     include: [
+  //       {
+  //         model: User,
+  //         as: 'patient',
+  //         attributes: [[db.sequelize.literal("CONCAT(title, ' ', patient.first_name, ' ', patient.last_name)"), "patient_name"], 'accessibility_needs'
+  //         ]
+  //       }
+  //     ],
+  //     group: [
+  //       'patient.id',
+  //       'patient.title',
+  //       'patient.first_name',
+  //       'patient.last_name',
+  //       'patient.accessibility_needs',
+  //       'appointment.appointment_reason'
+  //     ],
+  //     raw: true,
+  //     nest: true
+  //   });
+
+  //   return appointments;
+  // }
 
   async getDoctorPatients(doctorId) {
     const appointments = await Appointment.findAll({
-      where: { doctor_id: doctorId },
-      attributes: [],
-      include: [
-        {
-          model: User,
-          as: 'patient',
-          attributes: [[db.sequelize.literal("CONCAT(title, ' ', patient.first_name, ' ', patient.last_name)"), "patient_name"]
-          ]
-        }
-      ],
-      group: [
-        'patient.id',
-        'patient.title', 
-        'patient.first_name', 
-        'patient.last_name'
-      ],
-      raw: true,
-      nest: true
+        where: { doctor_id: doctorId },
+        attributes: ['appointment_reason'],
+        include: [
+            {
+                model: User,
+                as: 'patient',
+                attributes: [
+                    [db.sequelize.literal("CONCAT(title, ' ', patient.first_name, ' ', patient.last_name)"), "patient_name"],
+                    'accessibility_needs'
+                ]
+            }
+        ],
+        raw: true,
+        nest: true
     });
-  
-    return appointments;
-  } 
 
+    // Process the results to group by patient
+    const groupedPatients = appointments.reduce((acc, appointment) => {
+        const patientKey = appointment.patient.patient_name;
+        if (!acc[patientKey]) {
+            acc[patientKey] = {
+                patient: {
+                    patient_name: appointment.patient.patient_name,
+                    accessibility_needs: appointment.patient.accessibility_needs
+                },
+                appointment_reasons: []
+            };
+        }
+        acc[patientKey].appointment_reasons.push(appointment.appointment_reason);
+        return acc;
+    }, {});
+
+    // Convert the grouped object into an array
+    const result = Object.values(groupedPatients);
+    
+    return result;
+}
+
+  
+  
+  
   async updateAppointment(appointmentId, updates) {
     const appointment = await Appointment.findByPk(appointmentId);
     if (!appointment) {
