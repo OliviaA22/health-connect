@@ -161,7 +161,7 @@ class AppointmentService {
 
   async getUserDoctors(userId) {
     const doctors = await User.findAll({
-      attributes: [
+      attributes: [ 'id',
         [db.sequelize.literal("CONCAT(title, ' ', first_name, ' ', last_name)"), "doctor_name"],
       ],
       include: [
@@ -221,7 +221,7 @@ class AppointmentService {
             {
                 model: User,
                 as: 'patient',
-                attributes: [
+                attributes: [ 'id',
                     [db.sequelize.literal("CONCAT(title, ' ', patient.first_name, ' ', patient.last_name)"), "patient_name"],
                     'accessibility_needs'
                 ]

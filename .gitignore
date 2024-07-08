@@ -1,6 +1,5 @@
 node_modules
 .env
 .vscode
-frontend
-healthhub-main
-healthhub-main.zip
+
+node_modules.zip
