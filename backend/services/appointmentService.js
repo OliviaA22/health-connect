@@ -5,6 +5,7 @@ const Appointment = db.Appointment;
 const Availability = db.Availability;
 const Specialization = db.Specialization;
 const User = db.User;
+const Language = db.Language;
 
 class AppointmentService {
   async createAppointment(data) {
@@ -118,34 +119,78 @@ class AppointmentService {
     return appointments;
   }
 
+
   async getUserDoctors(userId) {
-    const doctors = await Appointment.findAll({
+    const appointments = await Appointment.findAll({
       where: { user_id: userId },
-      attributes: [],
       include: [{
         model: User,
         as: 'doctor',
-        attributes: [
-          'id',
-          [db.sequelize.literal("CONCAT(doctor.title, ' ', doctor.first_name, ' ', doctor.last_name)"), "doctor_name"]
-        ],
-        include: [{
-          model: Specialization,
-          as: "specialization",
-          attributes: ["area_of_specialization"]
-        }]
+        attributes: ['id', 'title', 'first_name', 'last_name'],
+        include: [
+          { model: Specialization, as: "specialization", attributes: ["area_of_specialization"] },
+          { model: Language, as: "languages", attributes: ["language_name"], through: { attributes: [] } }
+        ]
       }],
-      raw: true,
+      raw: false,
       nest: true
     });
   
-    return doctors.map(({ doctor, ...appointment }) => ({
-      id: doctor.id,
-      doctor_name: doctor.doctor_name,
-      area_of_specialization: doctor.specialization.area_of_specialization,
-      ...appointment
-    }));
+    const doctorsMap = new Map();
+    appointments.forEach(a => {
+      const doctor = a.doctor;
+      if (!doctorsMap.has(doctor.id)) {
+        doctorsMap.set(doctor.id, {
+          id: doctor.id,
+          doctor_name: `${doctor.title} ${doctor.first_name} ${doctor.last_name}`.trim(),
+          area_of_specialization: doctor.specialization?.area_of_specialization,
+          languages: doctor.languages?.map(l => l.language_name) || []
+        });
+      }
+    });
+  
+    return Array.from(doctorsMap.values());
   }
+  
+  
+  
+  
+  
+  // async getUserDoctors(userId) {
+  //   const doctors = await Appointment.findAll({
+  //     where: { user_id: userId },
+  //     attributes: [],
+  //     include: [{
+  //       model: User,
+  //       as: 'doctor',
+  //       attributes: [
+  //         'id',
+  //         [db.sequelize.literal("CONCAT(doctor.title, ' ', doctor.first_name, ' ', doctor.last_name)"), "doctor_name"]
+  //       ],
+  //       include: [{
+  //         model: Specialization,
+  //         as: "specialization",
+  //         attributes: ["area_of_specialization"]
+  //       },
+  //       {
+  //         model: Language,
+  //         attributes: ["language_name"], // Only include language_name
+  //         through: { attributes: [] }, // Exclude attributes from the junction table
+  //       },
+  //     ]
+  //     }],
+  //     raw: true,
+  //     nest: true
+  //   });
+  
+  //   return doctors.map(({ doctor, ...appointment }) => ({
+  //     id: doctor.id,
+  //     doctor_name: doctor.doctor_name,
+  //     area_of_specialization: doctor.specialization.area_of_specialization,
+  //     ...appointment
+  //   }));
+    
+  // }
   
 
   async getDoctorPatients(doctorId) {
