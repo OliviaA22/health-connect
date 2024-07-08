@@ -40,12 +40,12 @@ class AppointmentService {
         {
           model: User,
           as: "patient",
-          attributes: ["id", "first_name", "last_name", "address"],
+          attributes: ["id","title", "first_name", "last_name", "address"],
         },
         {
           model: User,
           as: "doctor",
-          attributes: ["id", "first_name", "last_name", "address"],
+          attributes: ["id", "title", "first_name", "last_name", "address"],
           include: [
             {
               model: Specialization,
@@ -80,7 +80,7 @@ class AppointmentService {
         {
           model: User,
           as: "doctor",
-          attributes: ["first_name", "last_name", "address"],
+          attributes: ["title", "first_name", "last_name", "address"],
           include: [
             {
               model: Specialization,
@@ -106,7 +106,7 @@ class AppointmentService {
         {
           model: User,
           as: "patient",
-          attributes: ["first_name", "last_name", "address"],
+          attributes: ["title", "first_name", "last_name", "address"],
         },
         {
           model: Availability,
@@ -168,7 +168,7 @@ class AppointmentService {
         {
           model: Appointment,
           where: { user_id: userId },
-          attributes: [],
+          attributes: ['book_translation', 'completed'],
           required: true
         },
         {
