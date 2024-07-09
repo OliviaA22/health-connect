@@ -229,12 +229,8 @@ class AppointmentService {
 
     // Convert the grouped object into an array
     const result = Object.values(groupedPatients);
-    
     return result;
 }
-
-  
-  
   
   async updateAppointment(appointmentId, updates) {
     const appointment = await Appointment.findByPk(appointmentId);
