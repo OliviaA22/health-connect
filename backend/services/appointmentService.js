@@ -41,7 +41,7 @@ class AppointmentService {
         {
           model: User,
           as: "patient",
-          attributes: ["id","title", "first_name", "last_name", "address"],
+          attributes: ["id", "title", "first_name", "last_name", "address"],
         },
         {
           model: User,
