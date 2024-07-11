@@ -1,19 +1,19 @@
+
 # HealthConnect: An Integrated Health Management App
 
 ## Overview
 
-HealthConnect is a web (mobile) application designed to empower individuals to manage their health effectively. The app combines health tracking features, personalized recommendations, medication management, and telehealth services to provide users with a holistic approach to healthcare management.
+HealthConnect is a web (mobile) application designed to empower individuals to manage their health effectively. The app focuses on providing a seamless appointment booking experience with optional dial-in translation services to ensure users can communicate effectively with healthcare professionals.
 
 ## Features
 
-- **Telehealth Services**: Users can schedule virtual consultations with healthcare professionals, including doctors, nutritionists, and fitness trainers. They can conduct video consultations and receive prescriptions or personalized treatment plans within the app.
-- **Real-time Translation Service**: Users(patients) have the option of subscribing for a translation service. This would help bridge the language barriers and facilitate access to care for immigrants.
-- **Health Data Tracking**: Users can input and track various health metrics such as physical activity, nutrition intake, sleep patterns, medication adherence, and vital signs (heart rate, blood pressure, blood sugar levels, etc.).
-- **Personalized Health Insights**: The app will employ machine learning algorithms to analyze user data and provide personalized insights and recommendations such as lifestyle changes, reminders for medication intake, and alerts for potential health risks based on the user's health data.
-- **Health Education Resources**: The app will offer a library of articles, videos, and interactive modules covering various health topics, empowering users to make informed decisions about their well-being.
-- **Community Support**: A supportive community where users can share their experiences, tips, and encouragement with fellow members. This feature promotes accountability and motivation for achieving health goals.
-
-- **Medication Interaction Checker**: The platform includes a database of medications and their potential interactions. Users can input their medication regimen, and the platform alerts them for any possible interactions or conflicts between medications.
+- **Appointment Booking**: Users can schedule appointments with healthcare professionals, including doctors, nutritionists, and fitness trainers. The platform provides an easy-to-use interface for selecting available time slots and booking appointments.
+- **Dial-In Translation Services**: Users have the option to include translation services during their appointments. This ensures clear communication between the user and the healthcare professional, regardless of language barriers.
+- **Future Feature - Telehealth Services**: Users can conduct virtual consultations via video with healthcare professionals and receive prescriptions or personalized treatment plans within the app.
+- **Future Feature - Health Education Resources**: Offers a library of articles, videos, and interactive modules covering various health topics, empowering users to make informed decisions about their well-being.
+- **Future Feature - Community Support**: A supportive community where users can share their experiences, tips, and encouragement with fellow members. This feature promotes accountability and motivation for achieving health goals.
+- **Future Feature - Health Data Tracking**: Plans to enable users to input and track various health metrics such as physical activity, nutrition intake, sleep patterns, medication adherence, and vital signs (heart rate, blood pressure, blood sugar levels, etc.).
+- **Future Feature - Personalized Health Insights**: Machine learning algorithms to analyze user data and provide personalized insights and recommendations such as lifestyle changes, reminders for medication intake, and alerts for potential health risks based on the user's health data.
 
 ## Target Market
 
@@ -21,25 +21,70 @@ HealthConnect targets individuals of all ages who proactively manage their healt
 
 ## Tech Stack
 
-This project leverages a powerful combination of React Express, and Node.js, along with a suite of dependencies designed to enhance functionality, security, and user experience. This ensures that the app is not only scalable and efficient but also secure and easy to use for all users.
+This project leverages a powerful combination of React and Node.js, along with a suite of dependencies designed to enhance functionality, security, and user experience. This ensures that the app is not only scalable and efficient but also secure and easy to use for all users.
 
 ### Frontend
 
-- **React**: Our user interface is built with React, enabling us to create a dynamic and responsive experience for our users. React's component-based architecture allows for efficient code reuse and faster development.
+- **React**: Enables a dynamic and responsive experience with its component-based architecture.
+- **TypeScript**: Adds static types to JavaScript, improving developer productivity and code quality.
+- **Vite**: Provides a fast development environment with next-generation frontend tooling.
+- **Tailwind CSS**: Utility-first CSS framework configured with custom screen sizes, font families, colors, and box shadows.
+- **Bootstrap**: Another CSS framework used to style the application.
 
 ### Backend
 
-- **Node.js**: The backend of HealthConnect runs on Node.js, providing a scalable and efficient server-side solution. Node.js's event-driven architecture ensures high performance and the ability to handle numerous simultaneous connections.
+- **Node.js**: Provides a scalable and efficient server-side solution with an event-driven architecture to handle numerous simultaneous connections.
 
 #### Dependencies
 
 - **Axios**: Utilized for making HTTP requests from the frontend to the backend services.
 - **Bcryptjs**: Ensures the security of user data through hashing and salting of passwords.
-- **Body-parser**: Middleware for parsing incoming request bodies in a middleware before your handlers, available under the `req.body` property.
-- **Cors**: Enables Cross-Origin Resource Sharing (CORS) with various options.
+- **Body-parser**: Middleware for parsing incoming request bodies.
+- **Cors**: Enables Cross-Origin Resource Sharing (CORS).
 - **Dotenv**: For loading environment variables.
-- **Express**: A fast, unopinionated, minimalist web framework for Node.js, used to build our RESTful API.
-- **Jsonwebtoken (JWT)**: Implements JSON Web Tokens for secure transmission of information between parties as a JSON object.
-- **MySQL2**: A MySQL client for Node.js with focus on performance. Supports prepared statements, non-UTF8 encodings, binary log protocol, compression, and SSL.
-- **Nodemon**: Simplifies development.
-- **Sequelize**: A promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite, and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication, and more.
+- **Express**: A fast, unopinionated, minimalist web framework for building RESTful APIs.
+- **Jsonwebtoken (JWT)**: Implements JSON Web Tokens for secure transmission of information.
+- **MySQL2**: A MySQL client for Node.js focused on performance.
+- **Nodemon**: Simplifies development by automatically restarting the server.
+- **Sequelize**: A promise-based Node.js ORM for various databases including MySQL, providing features like transaction support, relations, eager and lazy loading.
+- **React Hook Form**: Simplifies form handling and validation.
+- **React Router**: Manages navigation and routing within the application.
+- **Chart.js & React-Chartjs-2**: For data visualization and charting.
+- **Date-fns & React Datepicker**: For date manipulation and date picking functionalities.
+
+## Installation and Setup
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/michelleschmidt/DPDProject
+   ```
+
+2. **Install dependencies for the backend:**
+
+    ```bash
+    cd backend
+    npm install
+    ```
+
+3. **Install dependencies for the frontend:**
+
+    ```bash
+    cd ../frontend
+    npm install
+    npm install vite@latest --save-dev
+    ```
+
+    To open the frontend in developer mode do `npx vite` from the frontend directory and the page opens automatically. otherwise, run `npm start`
+
+4. **Set up environment variables:**
+   - The backend uses some APIs which cannot be disclosed and as such, cannot work properly without the required credentials.
+
+5. **Run the backend server:**
+
+   ```bash
+   cd backend
+   npm run dev (in development mode)
+   ```
+
+HealthConnect aims to revolutionize the way individuals manage their health by providing a comprehensive, user-friendly platform for appointment booking and telehealth services with optional translation support. Join us in making healthcare management accessible and efficient for everyone
