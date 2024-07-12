@@ -18,7 +18,9 @@ const allowedOrigins = [
   'http://health-connect:5173',
   'http://host.docker.internal:5173',
   'http://127.0.0.1:5173',
+  'https://oliviaa22.github.io',
   'https://oliviaa22.github.io/health-connect',
+  'http://michelleschmidt.github.io',
   'http://michelleschmidt.github.io/DPDProject',
 
 ];
