@@ -6,6 +6,7 @@ import process from 'node:process';
 const isDocker = process.env.DOCKER_ENV === 'true';
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   build: {
     rollupOptions: {
