@@ -20,6 +20,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'https://oliviaa22.github.io',
   'https://health-connect-app.netlify.app',
+  'https://main--health-connect-app.netlify.app',
   'http://michelleschmidt.github.io',
   'http://michelleschmidt.github.io/DPDProject',
 
