@@ -27,15 +27,12 @@ This project leverages a powerful combination of React and Node.js, along with a
 
 - **React**: Enables a dynamic and responsive experience with its component-based architecture.
 - **TypeScript**: Adds static types to JavaScript, improving developer productivity and code quality.
-- **Vite**: Provides a fast development environment with next-generation frontend tooling.
-- **Tailwind CSS**: Utility-first CSS framework configured with custom screen sizes, font families, colors, and box shadows.
-- **Bootstrap**: Another CSS framework used to style the application.
 
 ### Backend
 
 - **Node.js**: Provides a scalable and efficient server-side solution with an event-driven architecture to handle numerous simultaneous connections.
 
-#### Dependencies
+### Dependencies
 
 - **Axios**: Utilized for making HTTP requests from the frontend to the backend services.
 - **Bcryptjs**: Ensures the security of user data through hashing and salting of passwords.
@@ -47,17 +44,20 @@ This project leverages a powerful combination of React and Node.js, along with a
 - **MySQL2**: A MySQL client for Node.js focused on performance.
 - **Nodemon**: Simplifies development by automatically restarting the server.
 - **Sequelize**: A promise-based Node.js ORM for various databases including MySQL, providing features like transaction support, relations, eager and lazy loading.
-- **React Hook Form**: Simplifies form handling and validation.
-- **React Router**: Manages navigation and routing within the application.
+- **React Hook Form**: Simplifies form handling and validation for the frontend.
+- **React Router**: Manages navigation and routing within the application frontend.
 - **Chart.js & React-Chartjs-2**: For data visualization and charting.
 - **Date-fns & React Datepicker**: For date manipulation and date picking functionalities.
+- **Vite**: Provides a fast development environment with next-generation frontend tooling.
+- **Tailwind CSS**: Utility-first CSS framework configured with custom screen sizes, font families, colors, and box shadows.
+- **Bootstrap**: Another CSS framework used to style the application.
 
 ## Installation and Setup
 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/michelleschmidt/DPDProject
+   git clone https://github.com/OliviaA22/health-connect
    ```
 
 2. **Install dependencies for the backend:**
@@ -85,6 +85,7 @@ This project leverages a powerful combination of React and Node.js, along with a
    ```bash
    cd backend
    npm run dev (in development mode)
+   npm start (production)
    ```
 
 HealthConnect aims to revolutionize the way individuals manage their health by providing a comprehensive, user-friendly platform for appointment booking and telehealth services with optional translation support. Join us in making healthcare management accessible and efficient for everyone
