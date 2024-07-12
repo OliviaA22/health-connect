@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import LoginForm from "./LoginForm";
+import SignIn from "../../features/home/LoginIn";
 
 interface PrivateRouteProps {
   element: React.ReactElement;
@@ -14,11 +14,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
 }) => {
   const { isAuthenticated, userData } = useAuth();
 
-  // Check if the user is authenticated and has the required role
   const isAuthorized =
-    isAuthenticated && userData && requiredRoles.includes(userData.role);
+    isAuthenticated && userData && requiredRoles.includes(userData.role || "");
 
-  return isAuthorized ? element : <LoginForm />; // Render protected component if authorized, otherwise render LoginForm
+  return isAuthorized ? element : <SignIn />;
 };
 
 export default PrivateRoute;

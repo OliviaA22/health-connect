@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PageLayout from "../../components/layout/PageLayout";
-import axiosInstance from "../../Axios";
+import axiosInstance from "../../axios/Axios";
 import { useAuth } from "../../components/auth/AuthContext";
 import "../../Web.css";
 import DeleteConfirmationModal from "../../components/patientModal/DeleteConfirmationModal";
@@ -8,14 +8,13 @@ import EditPatientModal from "../../components/patientModal/EditModal";
 import AddPatientModal from "../../components/patientModal/AddModal";
 import PatientTable from "../../components/tables/PatientTable";
 import { Patient } from "../../components/Types";
+import { API_ENDPOINTS, ERROR_MESSAGES } from "../../axios/ConstantsAxios";
 
 const ManagePatients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, checkAuth, logout } = useAuth();
-  const DEFAULT_AVATAR = ""; // Set a default avatar URL if you have one
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -25,11 +24,33 @@ const ManagePatients: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.get("/api/users/patients");
-      setPatients(response.data);
+      const response = await axiosInstance.get(API_ENDPOINTS.GET_PATIENTS);
+      const mappedPatients: Patient[] = response.data.map((patient: any) => ({
+        userId: patient.id,
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        email: patient.email,
+        role: patient.role,
+        address: {
+          street: patient.address.street,
+          city: patient.address.city,
+          state: patient.address.state,
+          country: patient.address.country,
+          postcode: patient.address.postal_code,
+        },
+        languages: patient.languages.map((lang: any) => ({
+          id: lang.id,
+          language_name: lang.language_name,
+        })),
+        title: patient.title,
+        phone_number: patient.phone_number,
+        date_of_birth: new Date(patient.date_of_birth),
+        insurance: patient.insurance_type,
+      }));
+      setPatients(mappedPatients);
     } catch (error: any) {
       console.error("Error fetching Patients:", error);
-      setError("Failed to fetch Patients. Please try again.");
+      setError(ERROR_MESSAGES.FETCH_FAILED);
       if (error.response && error.response.status === 401) {
         logout();
       }
@@ -71,7 +92,7 @@ const ManagePatients: React.FC = () => {
     // Implement delete logic here
     if (selectedPatient) {
       try {
-        await axiosInstance.delete(`/api/users/patients/${selectedPatient.id}`);
+        await axiosInstance.delete(`/api/users/${selectedPatient.userId}`);
         refreshPatientList();
       } catch (error) {
         console.error("Error deleting patient:", error);
@@ -122,7 +143,7 @@ const ManagePatients: React.FC = () => {
         <EditPatientModal
           isOpen={isEditModalOpen}
           onClose={handleEditModalClose}
-          patientId={selectedPatient.id.toString()}
+          patientId={selectedPatient.userId}
           onUpdateSuccess={refreshPatientList}
         />
       )}

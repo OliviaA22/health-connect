@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Appointment, Patient, Doctor, Availability } from "../Types";
-import axiosInstance from "../../Axios";
+import axiosInstance from "../../axios/Axios";
 
+// Define the props for the EditAppointmentModal component
 interface EditAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,6 +12,7 @@ interface EditAppointmentModalProps {
   appointment: Appointment;
 }
 
+// Define appointment reasons
 const appointmentReasons = {
   "Regular consultation": [
     "Routine Check-up",
@@ -33,27 +35,30 @@ const appointmentReasons = {
   ],
 };
 
+// Define the EditAppointmentModal component
 const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   appointment,
 }) => {
+  // Define state variables
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null); // State for selected time
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [appointmentReasonCategory, setAppointmentReasonCategory] =
     useState<string>("");
   const [appointmentReasonSubcategory, setAppointmentReasonSubcategory] =
     useState<string>("");
   const [bookTranslation, setBookTranslation] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize state variables when the modal is opened
   useEffect(() => {
     if (isOpen && appointment) {
       setSelectedPatient(appointment.patient);
@@ -65,21 +70,19 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
           minute: "2-digit",
           hour12: false,
         })
-        .substring(0, 5); // Extract time portion only
+        .substring(0, 5);
 
       setSelectedDate(appointmentDate);
-      setSelectedTime(appointmentTime); // Initialize selectedTime from appointment
-
-      const reason = appointment.appointmentReason?.reason || "";
-      const subcategory = appointment.appointmentReason?.notes || "";
-
-      setAppointmentReasonCategory(reason);
-      setAppointmentReasonSubcategory(subcategory);
-
+      setSelectedTime(appointmentTime);
+      setAppointmentReasonCategory(appointment.appointmentReason?.reason || "");
+      setAppointmentReasonSubcategory(
+        appointment.appointmentReason?.notes || ""
+      );
       setBookTranslation(appointment.bookTranslation);
     }
   }, [isOpen, appointment]);
 
+  // Fetch patients from the API
   const fetchPatients = useCallback(async () => {
     try {
       setLoading(true);
@@ -93,6 +96,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     }
   }, []);
 
+  // Fetch doctors from the API
   const fetchDoctors = useCallback(async () => {
     try {
       setLoading(true);
@@ -106,6 +110,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     }
   }, []);
 
+  // Fetch patients and doctors when the modal is opened
   useEffect(() => {
     if (isOpen) {
       fetchPatients();
@@ -113,6 +118,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     }
   }, [isOpen, fetchPatients, fetchDoctors]);
 
+  // Fetch availability of a selected doctor
   const fetchDoctorAvailability = useCallback(async (doctorId: number) => {
     try {
       setLoading(true);
@@ -129,12 +135,14 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     }
   }, []);
 
+  // Fetch availability when a doctor is selected
   useEffect(() => {
     if (selectedDoctor) {
-      fetchDoctorAvailability(selectedDoctor.id);
+      fetchDoctorAvailability(selectedDoctor.userId);
     }
   }, [selectedDoctor, fetchDoctorAvailability]);
 
+  // Get available dates for the selected doctor
   const getAvailableDates = () => {
     const dates = [
       ...new Set(availabilities.map((a) => a.availability_date.split("T")[0])),
@@ -142,6 +150,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     return dates.map((date) => new Date(date));
   };
 
+  // Get available time slots for the selected date
   const getAvailableTimeSlots = (date: Date) => {
     const dateString = date.toISOString().split("T")[0];
     return availabilities
@@ -149,12 +158,13 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
       .map((a) => a.availability_date.split("T")[1].substring(0, 5));
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPatient && selectedDoctor && selectedDate && selectedTime) {
       const newAppointment = {
-        user_id: selectedPatient.id,
-        doctor_id: selectedDoctor.id,
+        user_id: selectedPatient.userId,
+        doctor_id: selectedDoctor.userId,
         availability_id: availabilities.find(
           (a) =>
             a.availability_date.startsWith(
@@ -175,7 +185,6 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
           `/api/appointments/${appointment.id}`,
           newAppointment
         );
-        console.log("Appointment updated successfully:", response.data);
         onSubmit(response.data);
         onClose();
       } catch (error: any) {
@@ -194,25 +203,47 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full m-4">
-        <h2 className="text-2xl font-bold mb-4">Edit Appointment</h2>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Edit Appointment</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
         {error && <div className="text-red-500 mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Patient selection */}
           <div>
             <label className="block mb-1">Patient:</label>
             <select
-              value={selectedPatient?.id || ""}
+              value={selectedPatient?.userId || ""}
               onChange={(e) =>
                 setSelectedPatient(
-                  patients.find((p) => p.id === Number(e.target.value)) || null
+                  patients.find((p) => p.userId === Number(e.target.value)) ||
+                    null
                 )
               }
               className="w-full p-2 border rounded"
             >
               {patients.map((patient) => (
-                <option key={patient.id} value={patient.id}>
+                <option key={patient.userId} value={patient.userId}>
                   {patient.first_name} {patient.last_name}
                 </option>
               ))}
@@ -223,16 +254,17 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
           <div>
             <label className="block mb-1">Doctor:</label>
             <select
-              value={selectedDoctor?.id || ""}
+              value={selectedDoctor?.userId || ""}
               onChange={(e) =>
                 setSelectedDoctor(
-                  doctors.find((d) => d.id === Number(e.target.value)) || null
+                  doctors.find((d) => d.userId === Number(e.target.value)) ||
+                    null
                 )
               }
               className="w-full p-2 border rounded"
             >
               {doctors.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
+                <option key={doctor.userId} value={doctor.userId}>
                   {doctor.first_name} {doctor.last_name}
                 </option>
               ))}
@@ -255,7 +287,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
               selected={selectedDate}
               onChange={(date: Date) => {
                 setSelectedDate(date);
-                setSelectedTime(null); // Reset selectedTime when selecting a new date
+                setSelectedTime(null);
               }}
               includeDates={getAvailableDates()}
               dateFormat="MMMM d, yyyy"
@@ -270,7 +302,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
               <label className="block mb-1">Select New Time:</label>
               <div className="grid grid-cols-3 gap-2">
                 {getAvailableTimeSlots(selectedDate).map((time) => {
-                  const isCurrentTime = time === selectedTime; // Compare directly with selectedTime
+                  const isCurrentTime = time === selectedTime;
 
                   return (
                     <button
@@ -335,25 +367,24 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
           )}
 
           {/* Book translation checkbox */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={bookTranslation}
-              onChange={(e) => setBookTranslation(e.target.checked)}
-              className="mr-2"
-            />
-            <label>Book Translation</label>
+          <div className="bg-blue-100 p-4 rounded-lg">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bookTranslation}
+                onChange={(e) => setBookTranslation(e.target.checked)}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="text-lg font-medium">Book Translation</span>
+            </label>
+            <p className="text-sm text-gray-600 mt-1">
+              Check this if translation services for this appointment are
+              needed.
+            </p>
           </div>
 
           {/* Submit and Cancel buttons */}
           <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400"
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"

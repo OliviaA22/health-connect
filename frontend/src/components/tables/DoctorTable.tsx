@@ -1,33 +1,68 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Doctor } from "../Types";
+import DeleteConfirmationModal from "../docModal/DeleteConfirmationModal";
+import EditDoctorModal from "../docModal/EditModal";
+import axiosInstance from "../../axios/Axios";
 
 interface DoctorTableProps {
   doctors: Doctor[];
-  onEdit: (doctor: Doctor) => void;
-  onDelete: (doctor: Doctor) => void;
-  DEFAULT_AVATAR: string;
+  loading: boolean;
+  error: string | null;
+  onRefresh: (filterLanguage?: string) => void;
 }
 
 const DoctorTable: React.FC<DoctorTableProps> = ({
   doctors,
-  onEdit,
-  onDelete,
-  DEFAULT_AVATAR,
+  loading,
+  error,
+  onRefresh,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
-  const handleImageError = (
-    e: React.SyntheticEvent<HTMLImageElement, Event>
-  ) => {
-    e.currentTarget.src = DEFAULT_AVATAR;
+  const handleEdit = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+  };
+
+  useEffect(() => {
+    if (selectedDoctor) {
+      setIsEditModalOpen(true);
+    }
+  }, [selectedDoctor]);
+
+  const handleDelete = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedDoctor) {
+      try {
+        await axiosInstance.delete(`/api/users/${selectedDoctor.userId}`);
+        onRefresh(); // Refresh the list after deletion
+      } catch (error) {
+        console.error("Error deleting doctor:", error);
+        // Handle error (you might want to pass this up to the parent component)
+      } finally {
+        setIsDeleteModalOpen(false);
+      }
+    }
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    onRefresh(); // Refresh the list when the modal is closed
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
     const searchLower = searchTerm.toLowerCase();
-    const fullName =
-      `${doctor.title} ${doctor.first_name} ${doctor.last_name}`.toLowerCase();
+    const fullName = `${doctor.title || ""} ${doctor.first_name || ""} ${
+      doctor.last_name || ""
+    }`.toLowerCase();
     const specialization =
-      doctor.specialization?.area_of_specialization.toLowerCase() || "";
+      doctor.specialization?.area_of_specialization?.toLowerCase() || "";
     const languages =
       doctor.languages
         ?.map((lang) => lang.language_name.toLowerCase())
@@ -39,6 +74,9 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
       languages.includes(searchLower)
     );
   });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="error-message">{error}</div>;
 
   return (
     <div>
@@ -61,43 +99,28 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {filteredDoctors.map((doctor, index) => (
-            <tr key={doctor.id || index} className="border-b border-blue-200">
-              <td className="py-2 flex items-center gap-4">
-                <img
-                // src="/src/assets/img/doctors-grid/348x350-0.png"
-                  src={doctor.profileImage || DEFAULT_AVATAR}
-                  onError={handleImageError}
-                  className="rounded-full w-9 h-9 object-cover"
-                  alt={`${doctor.title} ${doctor.first_name} ${doctor.last_name}`}
-                />
-                <span>
-                  {`${doctor.title} ${doctor.first_name || ""} ${
-                    doctor.last_name || ""
-                  }`}
-                </span>
-              </td>
+          {filteredDoctors.map((doctor) => (
+            <tr key={doctor.userId} className="border-b border-blue-200">
               <td>
-                {doctor.specialization
-                  ? doctor.specialization.area_of_specialization
-                  : ""}
+                {`${doctor.title || ""} ${doctor.first_name || ""} ${
+                  doctor.last_name || ""
+                }`}
               </td>
+              <td>{doctor.specialization?.area_of_specialization || ""}</td>
               <td>
                 {doctor.languages
-                  ? doctor.languages
-                      .map((lang) => lang.language_name)
-                      .join(", ")
-                  : ""}
+                  ?.map((lang) => lang.language_name)
+                  .join(", ") || ""}
               </td>
               <td>
                 <button
-                  onClick={() => onEdit(doctor)}
+                  onClick={() => handleEdit(doctor)}
                   className="mr-2 px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => onDelete(doctor)}
+                  onClick={() => handleDelete(doctor)}
                   className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-100"
                 >
                   Delete
@@ -107,8 +130,26 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
           ))}
         </tbody>
       </table>
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        doctorName={
+          selectedDoctor
+            ? `${selectedDoctor.first_name} ${selectedDoctor.last_name}`
+            : ""
+        }
+      />
+      {isEditModalOpen && selectedDoctor && (
+        <EditDoctorModal
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          doctorId={selectedDoctor.userId}
+          onUpdateSuccess={onRefresh}
+        />
+      )}
     </div>
   );
 };
 
-export default DoctorTable;
+export default React.memo(DoctorTable);

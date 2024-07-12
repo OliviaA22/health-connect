@@ -4,7 +4,7 @@ import EditDoctorModal from "../docModal/EditModal";
 import EditPatientModal from "../patientModal/EditModal";
 import DeleteConfirmationModal from "../appointmentModal/DeleteConfirmationModal";
 import EditAppointmentModal from "../appointmentModal/EditModal";
-import axiosInstance from "../../Axios";
+import axiosInstance from "../../axios/Axios";
 
 interface AppointmentTableProps {
   appointments: Appointment[];
@@ -28,6 +28,12 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   const [translationFilter, setTranslationFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
+  useEffect(() => {
+    if (doctorId !== undefined) {
+      fetchAppointments(doctorId);
+    }
+  }, [doctorId, fetchAppointments]);
+
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return isNaN(date.getTime())
@@ -44,12 +50,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
       : "bg-yellow-200 text-yellow-800";
   };
 
-  useEffect(() => {
-    if (doctorId !== undefined) {
-      fetchAppointments(doctorId);
-    }
-  }, [doctorId, fetchAppointments]);
-
   const handleDoctorClick = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setIsEditModalOpen(true);
@@ -65,7 +65,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
     setSelectedPatient(null);
     setSelectedAppointment(null);
     setIsEditModalOpen(false);
-    setIsDeleteModalOpen(false); // Ensure delete modal is closed too
+    setIsDeleteModalOpen(false);
   };
 
   const handleEdit = (appointment: Appointment) => {
@@ -82,9 +82,8 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
     if (!selectedAppointment) return;
     try {
       await axiosInstance.delete(`/api/appointments/${selectedAppointment.id}`);
-      console.log("Deleted Appointment:", selectedAppointment);
       setIsDeleteModalOpen(false);
-      fetchAppointments(doctorId); // Adjusted to pass doctorId directly
+      fetchAppointments(doctorId);
     } catch (error) {
       console.error("Error deleting appointment:", error);
       setIsDeleteModalOpen(false);
@@ -92,7 +91,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   };
 
   const handleUpdateSuccess = async () => {
-    await fetchAppointments(doctorId); // Adjusted to pass doctorId directly
+    await fetchAppointments(doctorId);
     handleCloseModal();
   };
 
@@ -118,7 +117,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   });
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <input
           type="text"
@@ -145,28 +144,16 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
           <option value="completed">Completed</option>
           <option value="pending">Pending</option>
         </select>
-      </div>{" "}
+      </div>
       <table className="min-w-full bg-white">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Doctor
-            </th>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Patient
-            </th>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Date & Time
-            </th>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Reason
-            </th>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Status
-            </th>
-            <th className="py-3 px-4 text-left font-semibold text-gray-600">
-              Actions
-            </th>
+        <thead>
+          <tr className="font-medium">
+            <th className="text-left w-[26%]">Doctor</th>
+            <th className="text-left w-[21%]">Patient</th>
+            <th className="text-left w-[21%]">Date & Time</th>
+            <th className="text-left w-[21%]">Reason</th>
+            <th className="text-left w-[21%]">Status</th>
+            <th className="text-left w-[26%]">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -222,13 +209,13 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
               <td className="py-4 px-4">
                 <button
                   onClick={() => handleEdit(appointment)}
-                  className="mr-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 text-sm"
+                  className="mr-2 px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-100"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(appointment)}
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300 text-sm"
+                  className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-100"
                 >
                   Delete
                 </button>
@@ -237,20 +224,19 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
           ))}
         </tbody>
       </table>
-      {/* Modals */}
       {isEditModalOpen && selectedDoctor && (
         <EditDoctorModal
           isOpen={isEditModalOpen}
           onClose={handleCloseModal}
           onUpdateSuccess={handleUpdateSuccess}
-          doctor={selectedDoctor}
+          doctorId={selectedDoctor.userId}
         />
       )}
       {isEditModalOpen && selectedPatient && (
         <EditPatientModal
           isOpen={isEditModalOpen}
           onClose={handleCloseModal}
-          patientId={selectedPatient.id.toString()}
+          patientId={selectedPatient.userId}
           onUpdateSuccess={handleUpdateSuccess}
         />
       )}

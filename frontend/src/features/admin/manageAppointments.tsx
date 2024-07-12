@@ -1,41 +1,47 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../../Axios";
+import axiosInstance from "../../axios/Axios";
 import AppointmentTable from "../../components/tables/AppointmentTable";
 import { Appointment } from "../../components/Types";
 import PageLayout from "../../components/layout/PageLayout";
-import DeleteConfirmationModal from "../../components/appointmentModal/DeleteConfirmationModal";
-import EditAppointmentModal from "../../components/appointmentModal/EditModal";
 import AddAppointmentModal from "../../components/appointmentModal/AddModal";
+import { API_ENDPOINTS, ERROR_MESSAGES } from "../../axios/ConstantsAxios";
 
 const ManageAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
 
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (doctorId?: number) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get<Appointment[]>(
-        "/api/appointments/"
-      );
+      let url = API_ENDPOINTS.GET_ALL_APPOINTMENTS;
+      if (doctorId) {
+        url += `?doctorId=${doctorId}`;
+      }
+      const response = await axiosInstance.get<Appointment[]>(url);
       setAppointments(response.data);
-      console.log("Fetched appointments:", response.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching appointments:", error);
-      setError("Failed to fetch appointments. Please try again.");
+      setError(ERROR_MESSAGES.FETCH_FAILED);
       setLoading(false);
     }
   };
 
   const handleAddAppointment = () => {
-    console.log("Opening Add Appointment Modal");
     setIsAddModalOpen(true);
+  };
+
+  const handleSubmit = () => {
+    setIsAddModalOpen(false);
+    fetchAppointments();
   };
 
   if (loading) return <div>Loading...</div>;
@@ -48,7 +54,7 @@ const ManageAppointments: React.FC = () => {
           <div className="p-6 w-full flex-flex-col gap-8 h-full bg-white shadow-custom rounded-2xl">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl text-blue-600 font-semibold">
-                Appointments
+                Appointment
               </h1>
               <button
                 onClick={handleAddAppointment}
@@ -64,6 +70,14 @@ const ManageAppointments: React.FC = () => {
           </div>
         </div>
       </div>
+      {isAddModalOpen && (
+        <AddAppointmentModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleSubmit}
+          sendby="Admin"
+        />
+      )}
     </PageLayout>
   );
 };
