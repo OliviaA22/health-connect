@@ -1,5 +1,6 @@
 import React from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import bgPreview from '@/assets/img/doctors-grid/bg-preview.png'
 
 const HeroSection: React.FC = () => {
   return (
@@ -21,8 +22,7 @@ const HeroSection: React.FC = () => {
         </div>
         <div className="w-[40%] flex items-end justify-end">
           <img
-            src="/src/assets/img/doctors-grid/bg-preview.png"
-            alt=""
+            src={bgPreview} alt="Preview"
             className="h-[400px]"
           />
         </div>
